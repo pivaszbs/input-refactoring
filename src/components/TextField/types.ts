@@ -25,5 +25,8 @@ export interface Props extends React.HTMLProps<HTMLInputElement> {
     selector?: string | null;
     priority?: number;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
+    onChange?: (value: string) => void;
     inputSize: 'm' | 'l';
+    dataE2e?: string;
+    dataTestId?: string;
 }
