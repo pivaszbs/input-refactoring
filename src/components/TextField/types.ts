@@ -17,7 +17,7 @@ export function isInputMaskRef(ref: InputMaskClass | HTMLInputElement): ref is I
     return (ref as InputMaskClass).inputElement !== undefined;
 }
 
-export interface Props extends React.HTMLProps<HTMLInputElement> {
+export interface Props extends Omit<React.HTMLProps<HTMLInputElement>, 'onChange'> {
     withoutImplicitFocus?: boolean;
     hasAutoSelect?: boolean;
     hasLowerCase?: boolean;
@@ -25,5 +25,8 @@ export interface Props extends React.HTMLProps<HTMLInputElement> {
     selector?: string | null;
     priority?: number;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
+    onChange?: (value: string) => void;
     inputSize: 'm' | 'l';
+    dataE2e?: string;
+    dataTestId?: string;
 }

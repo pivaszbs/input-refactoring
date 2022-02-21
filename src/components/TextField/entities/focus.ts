@@ -44,6 +44,6 @@ export const superFocusPriorityAtom = map(superFocusAtom, (megaFocus) =>
     }, null)
 );
 
-export const superFocuEnableAtom = map(superFocusAtom, (megaFocus) =>
+export const superFocusEnableAtom = map(superFocusAtom, (megaFocus) =>
     Object.values(megaFocus).every((selectors) => !selectors.includes(null))
 );
