@@ -22,5 +22,5 @@ export function useFocusAfterError(ref: React.MutableRefObject<HTMLInputElement 
 				: ref.current.focus();
 			setFocus(false);
 		}
-	}, [shouldFocus, hasError, setError, setFocus, withoutImplicitFocus]);
+	}, [shouldFocus, hasError, setError, setFocus, withoutImplicitFocus, ref]);
 }

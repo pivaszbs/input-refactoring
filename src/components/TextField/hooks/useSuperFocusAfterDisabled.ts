@@ -12,5 +12,5 @@ export function useSuperFocusAfterDisabled(ref: React.MutableRefObject<HTMLInput
 				ref.current.select();
 			}
 		}
-	}, [superFocusCondition, disabled]);
+	}, [superFocusCondition, disabled, ref]);
 }

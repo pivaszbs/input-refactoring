@@ -12,5 +12,5 @@ export function useSuperFocus(selector: string | null, priority: number) {
 		});
 
 		return () => popFocus(priority);
-	}, []);
+	}, [popFocus, pushFocus, selector, priority]);
 }

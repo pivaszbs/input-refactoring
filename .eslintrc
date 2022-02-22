@@ -22,6 +22,8 @@
 			"files": ["*.ts", "*.tsx"],
 			"rules": {
 				"react/jsx-props-no-spreading": "off",
+				"import/prefer-default-export": "off",
+				"@typescript-eslint/no-unused-expressions": "off"
 			}
 		}],
 	"ignorePatterns": "*.config.ts"

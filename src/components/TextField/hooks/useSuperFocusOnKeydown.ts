@@ -17,5 +17,5 @@ export function useSuperFocusOnKeydown(ref: React.MutableRefObject<HTMLInputElem
 		document.addEventListener("keydown", callbackRef.current);
 		return () =>
 			document.removeEventListener("keydown", callbackRef.current);
-	}, [superFocusCondition]);
+	}, [superFocusCondition, ref]);
 }
