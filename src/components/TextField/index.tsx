@@ -1,19 +1,17 @@
-/* eslint-disable max-lines */
-import React, { FocusEventHandler, KeyboardEvent, memo, useCallback, useRef } from "react";
+import React, { FocusEventHandler, KeyboardEvent, memo, useCallback, useContext, useRef } from "react";
 import { noop } from "@reatom/core";
 import { useAtom } from "@reatom/react";
 import classnames from "classnames/bind";
+import { TextFieldDefaultContext } from "@app/components/TextField/context";
 import { superFocusEnableAtom, superFocusPriorityAtom } from "./entities/focus";
 import { InputMaskClass, Props } from "./types";
-import { selectOnEnter, transformToUppercase } from "./utils";
 import { DEFAULT_SELECTOR } from "./constants";
 
 import styles from "./styles.module.css";
-import { useFocusAfterErrorDefault, useSuperFocusDefault, useSuperFocusAfterDisabledDefault, useSuperFocusOnKeydownDefault } from "@app/components/TextField/hooks";
 
 const cn = classnames.bind(styles);
 
-const TextField = ({
+function TextField({
 	withoutImplicitFocus,
 	disabled,
 	onFocus,
@@ -22,19 +20,12 @@ const TextField = ({
 	onChange: onChangeProp,
 	hasAutoSelect = true,
 	selector = DEFAULT_SELECTOR,
-	inputSize = "l",
 	priority = 0,
 	dataE2e = selector || DEFAULT_SELECTOR,
 	dataTestId = selector || DEFAULT_SELECTOR,
-	handleEnter = selectOnEnter,
-	transformValueOnChange = transformToUppercase,
 	onKeyDown = noop,
-	useSuperFocus = useSuperFocusDefault,
-	useFocusAfterError = useFocusAfterErrorDefault,
-	useSuperFocusOnKeydown = useSuperFocusOnKeydownDefault,
-	useSuperFocusAfterDisabled = useSuperFocusAfterDisabledDefault,
 	...textFieldProps
-}: Props) => {
+}: Props) {
 	const ref = useRef<HTMLInputElement | InputMaskClass>();
 	const superFocuEnable = useAtom(superFocusEnableAtom);
 	const superFocusCondition = useAtom(
@@ -45,6 +36,8 @@ const TextField = ({
 			selector !== null,
 		[selector, superFocuEnable]
 	);
+
+	const { useSuperFocusAfterDisabled, useFocusAfterError, useSuperFocus, useSuperFocusOnKeydown, transformValueOnChange, handleEnter, inputSize } = useContext(TextFieldDefaultContext);
 
 	useSuperFocus(selector, priority);
 	useSuperFocusOnKeydown(ref, superFocusCondition);
@@ -57,7 +50,7 @@ const TextField = ({
 				onChangeProp(transformValueOnChange(e.currentTarget.value));
 			}
 		},
-		[hasLowerCase, onChangeProp]
+		[onChangeProp, transformValueOnChange]
 	);
 
 	const handleKeyDown = useCallback(
@@ -67,7 +60,7 @@ const TextField = ({
 			}
 			onKeyDown(event);
 		},
-		[hasAutoSelectAfterSubmit, onKeyDown]
+		[hasAutoSelectAfterSubmit, onKeyDown, ref, handleEnter]
 	);
 
 	const handleFocus: FocusEventHandler<HTMLInputElement> = useCallback(
@@ -84,8 +77,8 @@ const TextField = ({
 
 	return (
 		<input
-			data-e2e={selector || "text-field"}
-			data-testid={selector || "text-field"}
+			data-e2e={dataE2e}
+			data-testid={dataTestId}
 			autoComplete="off"
 			onFocus={handleFocus}
 			className={cn("text-field", {
@@ -99,6 +92,6 @@ const TextField = ({
 			{...textFieldProps}
 		/>
 	);
-};
+}
 
 export default memo(TextField);

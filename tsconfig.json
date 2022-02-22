@@ -12,9 +12,6 @@
     "paths": {
       "@app/*": ["./src/*"]
     },
-	"include": [
-	  "src/*"
-	],
     "allowSyntheticDefaultImports": true
   }
 }

@@ -32,13 +32,16 @@ export interface Props extends Omit<React.HTMLProps<HTMLInputElement>, 'onChange
     priority?: number;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
     onChange?: (value: string) => void;
-    inputSize: 'm' | 'l';
     dataE2e?: string;
     dataTestId?: string;
-	transformValueOnChange?: (value: string) => string;
-	useFocusAfterError: typeof useFocusAfterErrorDefault,
-	useSuperFocusAfterDisabled: typeof useSuperFocusAfterDisabledDefault,
-	useSuperFocus: typeof useSuperFocusDefault,
-	useSuperFocusOnKeydown: typeof useSuperFocusOnKeydownDefault,
-	handleEnter: typeof selectOnEnter
+}
+
+export type TextFieldContextType = {
+	useFocusAfterError: typeof useFocusAfterErrorDefault;
+	useSuperFocusAfterDisabled: typeof useSuperFocusAfterDisabledDefault;
+	useSuperFocus: typeof useSuperFocusDefault;
+	useSuperFocusOnKeydown: typeof useSuperFocusOnKeydownDefault;
+	handleEnter: typeof selectOnEnter;
+	inputSize: 'm' | 'l';
+	transformValueOnChange: (value: string) => string;
 }
