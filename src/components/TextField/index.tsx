@@ -1,49 +1,42 @@
 /* eslint-disable max-lines */
+import React, { FocusEventHandler, KeyboardEvent, memo, useCallback, useRef } from "react";
 import { noop } from "@reatom/core";
-import { useAction, useAtom } from "@reatom/react";
-import React, {
-	FocusEventHandler,
-	KeyboardEvent,
-	memo,
-	useCallback,
-	useEffect,
-	useRef,
-} from "react";
-import { inputAtom, setFocusInput, setInputError } from "./entities/error";
-import {
-	popFromSuperFocus,
-	pushToSuperFocus,
-	superFocusEnableAtom,
-	superFocusPriorityAtom,
-} from "./entities/focus";
+import { useAtom } from "@reatom/react";
 import classnames from "classnames/bind";
-import styles from "./styles.module.css";
+import { useFocusAfterErrorDefault, useSuperFocusDefault, useSuperFocusAfterDisabledDefault, useSuperFocusOnKeydownDefault } from "@app/components/TextField/hooks";
+import { superFocusEnableAtom, superFocusPriorityAtom } from "./entities/focus";
+import { InputMaskClass, Props } from "./types";
+import { selectOnEnter, transformToUppercase } from "./utils";
+import { DEFAULT_SELECTOR } from "./constants";
 
-import { InputMaskClass, isInputMaskRef, Props } from "./types";
+import styles from "./styles.module.css";
 
 const cn = classnames.bind(styles);
 
-const DEFAULT_SELECTOR = "text-field";
-
-const TextField = ({
+function TextField({
 	withoutImplicitFocus,
-	hasLowerCase = false,
-	hasAutoSelect = true,
-	hasAutoSelectAfterSubmit = false,
-	selector = DEFAULT_SELECTOR,
-	priority = 0,
 	disabled,
-	onKeyDown = noop,
-	inputSize = "l",
 	onFocus,
+	hasLowerCase,
+	hasAutoSelectAfterSubmit,
 	onChange: onChangeProp,
+	hasAutoSelect = true,
+	selector = DEFAULT_SELECTOR,
+	inputSize = "l",
+	priority = 0,
 	dataE2e = selector || DEFAULT_SELECTOR,
 	dataTestId = selector || DEFAULT_SELECTOR,
+	handleEnter = selectOnEnter,
+	transformValueOnChange = transformToUppercase,
+	onKeyDown = noop,
+	useSuperFocus = useSuperFocusDefault,
+	useFocusAfterError = useFocusAfterErrorDefault,
+	useSuperFocusOnKeydown = useSuperFocusOnKeydownDefault,
+	useSuperFocusAfterDisabled = useSuperFocusAfterDisabledDefault,
+	someJSX,
 	...textFieldProps
-}: Props) => {
-	const callbackRef = useRef<() => void>(noop);
+}: Props) {
 	const ref = useRef<HTMLInputElement | InputMaskClass>();
-	const { hasError, shouldFocus } = useAtom(inputAtom);
 	const superFocuEnable = useAtom(superFocusEnableAtom);
 	const superFocusCondition = useAtom(
 		superFocusPriorityAtom,
@@ -53,81 +46,29 @@ const TextField = ({
 			selector !== null,
 		[selector, superFocuEnable]
 	);
-	const pushFocus = useAction(pushToSuperFocus);
-	const popFocus = useAction(popFromSuperFocus);
-	const setError = useAction(setInputError);
-	const setFocus = useAction(setFocusInput);
 
-	useEffect(() => {
-		document.removeEventListener("keydown", callbackRef.current);
-		callbackRef.current = () => {
-			if (superFocusCondition && ref.current) {
-				isInputMaskRef(ref.current)
-					? ref.current.inputElement.focus()
-					: ref.current.focus();
-			}
-		};
-		document.addEventListener("keydown", callbackRef.current);
-		return () =>
-			document.removeEventListener("keydown", callbackRef.current);
-	}, [superFocusCondition]);
-
-	useEffect(() => {
-		if (superFocusCondition && !disabled && ref.current) {
-			if (isInputMaskRef(ref.current)) {
-				ref.current.inputElement.focus();
-				ref.current.inputElement.select();
-			} else {
-				ref.current.focus();
-				ref.current.select();
-			}
-		}
-	}, [superFocusCondition, disabled]);
-
-	useEffect(() => {
-		if (hasError && ref.current) {
-			isInputMaskRef(ref.current)
-				? ref.current.inputElement.select()
-				: ref.current.select();
-			setError(false);
-			return;
-		}
-		if (shouldFocus && !withoutImplicitFocus && ref.current) {
-			isInputMaskRef(ref.current)
-				? ref.current.inputElement.focus()
-				: ref.current.focus();
-			setFocus(false);
-		}
-	}, [shouldFocus, hasError, setError, setFocus, withoutImplicitFocus]);
+	useSuperFocus(selector, priority);
+	useSuperFocusOnKeydown(ref, superFocusCondition);
+	useSuperFocusAfterDisabled(ref, disabled, superFocusCondition);
+	useFocusAfterError(ref, withoutImplicitFocus);
 
 	const onChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			if (onChangeProp) {
-				if (hasLowerCase) {
-					onChangeProp(e.currentTarget.value);
-					return;
-				}
-				onChangeProp(String(e.currentTarget.value).toLocaleUpperCase());
+				onChangeProp(transformValueOnChange(e.currentTarget.value));
 			}
 		},
-		[hasLowerCase, onChangeProp]
+		[onChangeProp, transformValueOnChange]
 	);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			if (
-				hasAutoSelectAfterSubmit &&
-				event.key === "Enter" &&
-				ref.current
-			) {
-				isInputMaskRef(ref.current)
-					? ref.current.inputElement.select()
-					: ref.current.select();
+			if (event.key === 'Enter') {
+				handleEnter(ref, event, hasAutoSelectAfterSubmit);
 			}
-
 			onKeyDown(event);
 		},
-		[hasAutoSelectAfterSubmit, onKeyDown]
+		[handleEnter, hasAutoSelectAfterSubmit, onKeyDown]
 	);
 
 	const handleFocus: FocusEventHandler<HTMLInputElement> = useCallback(
@@ -142,32 +83,26 @@ const TextField = ({
 		[hasAutoSelect, onFocus]
 	);
 
-	useEffect(() => {
-		pushFocus({
-			selector,
-			priority,
-		});
-
-		return () => popFocus(priority);
-	}, [pushFocus, popFocus, selector, priority]);
-
 	return (
-		<input
-			data-e2e={selector || "text-field"}
-			data-testid={selector || "text-field"}
-			autoComplete="off"
-			onFocus={handleFocus}
-			className={cn("text-field", {
-				"size-m": inputSize === "m",
-				"size-l": inputSize === "l",
-			})}
-			ref={ref}
-			onChange={onChange}
-			disabled={disabled}
-			onKeyDown={handleKeyDown}
-			{...textFieldProps}
-		/>
+		<>
+			{someJSX}
+			<input
+				data-e2e={dataE2e}
+				data-testid={dataTestId}
+				autoComplete="off"
+				onFocus={handleFocus}
+				className={cn("text-field", {
+					"size-m": inputSize === "m",
+					"size-l": inputSize === "l",
+				})}
+				ref={ref as React.LegacyRef<HTMLInputElement>}
+				onChange={onChange}
+				disabled={disabled}
+				onKeyDown={handleKeyDown}
+				{...textFieldProps}
+			/>
+		</>
 	);
-};
+}
 
 export default memo(TextField);
