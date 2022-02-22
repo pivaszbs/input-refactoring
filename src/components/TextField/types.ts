@@ -1,5 +1,11 @@
 import React, { KeyboardEvent, MutableRefObject } from 'react';
 import { Nullable } from './entities/types';
+import {
+	useFocusAfterErrorDefault,
+	useSuperFocusAfterDisabledDefault,
+	useSuperFocusDefault, useSuperFocusOnKeydownDefault
+} from "@app/components/TextField/hooks";
+import { selectOnEnter } from "@app/components/TextField/utils";
 
 export type InputMaskClass = {
     inputElement: HTMLInputElement;
@@ -17,7 +23,7 @@ export function isInputMaskRef(ref: InputMaskClass | HTMLInputElement): ref is I
     return (ref as InputMaskClass).inputElement !== undefined;
 }
 
-export interface Props extends React.HTMLProps<HTMLInputElement> {
+export interface Props extends Omit<React.HTMLProps<HTMLInputElement>, 'onChange'> {
     withoutImplicitFocus?: boolean;
     hasAutoSelect?: boolean;
     hasLowerCase?: boolean;
@@ -29,4 +35,10 @@ export interface Props extends React.HTMLProps<HTMLInputElement> {
     inputSize: 'm' | 'l';
     dataE2e?: string;
     dataTestId?: string;
+	transformValueOnChange?: (value: string) => string;
+	useFocusAfterError: typeof useFocusAfterErrorDefault,
+	useSuperFocusAfterDisabled: typeof useSuperFocusAfterDisabledDefault,
+	useSuperFocus: typeof useSuperFocusDefault,
+	useSuperFocusOnKeydown: typeof useSuperFocusOnKeydownDefault,
+	handleEnter: typeof selectOnEnter
 }
